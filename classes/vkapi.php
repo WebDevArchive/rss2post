@@ -23,7 +23,7 @@ class VKapi {
 		// (чтобы приаттачить ее по полученному в ответе id).
 		if ($rssItem['postImage']) {
 			$imgDownUpResponse = $this->imgDownloadUpload($rssItem['postImage'], $this->config['vkPublicID']);
-			if ($imgDownUpResponse[0]->id) {
+			if (isset($imgDownUpResponse[0]->id)) {
 				$postParams['attachments'] = "{$imgDownUpResponse[0]->id}";
 			}
 		}
@@ -50,15 +50,17 @@ class VKapi {
 	
 	public function imgDownloadUpload($img, $publicID) {
 		/* Download image */
-		$ch = curl_init($img);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		$imgDown = curl_exec($ch);
-		curl_close($ch);
-		$imgfn = uniqid().'.jpg';
-		file_put_contents($imgfn, $imgDown);
+		if ($img = file_get_contents($img)) {//get contents of file
+			$imgfn = uniqid().'.jpg';
+			if ($f = fopen($imgfn, 'w')) {
+				fwrite($f, $img); //Write File
+				fclose($f);
+			}
+		}
+
 		if (strpos(mime_content_type($imgfn), 'image') === false) {
+			echo "No image. Hotlink? \n";
 			echo 'mime_content_type: '.mime_content_type($imgfn);
-			echo "\n Не удалось получить изображение. Возможно, защита от хотлинка \n";
 			unlink($imgfn);
 			return false;
 		}
@@ -67,8 +69,9 @@ class VKapi {
 		$imgUpResponse = $this->api('photos.getWallUploadServer', array('group_id' => abs($publicID)));
 		$uploadURL = $imgUpResponse->upload_url;
 		$fullServerPathToImage = $imgfn;
-		$output = array();
+		$output = array();		
 		exec("curl -X POST -F 'photo=@$fullServerPathToImage' '$uploadURL'", $output);
+
 		$imgUpResponse = json_decode($output[0]);
 		$imgUpResponse = $this->api('photos.saveWallPhoto', array(
 			'group_id' => abs($publicID),

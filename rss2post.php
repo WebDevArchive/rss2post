@@ -9,7 +9,7 @@ class Rss2Post {
 	private $log;
 
 	function __construct(RssFeed $RssFeed, $socNets, Loger $Loger) {
-		$this->rss 		= $RssFeed;
+		$this->rss 	= $RssFeed;
 		$this->socNets	= $socNets;
 		$this->log		= $Loger;
 	}
@@ -26,7 +26,7 @@ class Rss2Post {
 			// Постим новость по социальным сетям
 			foreach($this->socNets as $socNetName => &$socNet) {
 				
-				// Если дата новости страше последней опубликованной в текущей соц.сети, то пропускаем.
+				// Если дата новости меньше последней опубликованной в текущей соц.сети, то пропускаем.
 				$socNetName	= $socNet->getSocNetName();
 				if (!$this->isActualNews($socNetName, $rssNews[$i])) continue;
 				
@@ -41,9 +41,10 @@ class Rss2Post {
 				} else {
 					$this->log->savePostDone($socNetName, $rssNews[$i]);
 				}
+
 			}
 			
-			// Пауза перед постами. 
+			// Пауза перед постами.
 			sleep(2);
 		}
 	}
@@ -57,7 +58,7 @@ class Rss2Post {
 		return true;
 	}
 	
-	function decodeHtmlEnt($str) {
+	public static function decodeHtmlEnt($str) {
 		$ret = html_entity_decode($str, ENT_COMPAT, 'UTF-8');
 		$p2 = -1;
 		for(;;) {

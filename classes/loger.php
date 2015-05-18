@@ -9,7 +9,9 @@ class Loger {
 
 	public function loadLastRssDate ($SocNetName) {
 		if (file_exists($this->logFolder.$SocNetName.'.log')) {
-			$lastRssDate = explode(self::DELIMITER, end(file($this->logFolder.$SocNetName.'.log')));
+			$logFileContent = file($this->logFolder.$SocNetName.'.log');
+			$lastLogLine = end($logFileContent);
+			$lastRssDate = explode(self::DELIMITER, $lastLogLine);
 			return trim($lastRssDate[1]);
 		}
 		return false;
